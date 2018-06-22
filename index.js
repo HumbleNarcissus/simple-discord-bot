@@ -9,6 +9,12 @@ const bot = new Discord.Client();
 //port
 const port = process.env.PORT || 3000;
 
+//information about bot running
+app.get('/', (req, res) => {
+    res.send('Bot is running.');
+});
+
+
 //login bot
 app.listen(port, () => {
     console.log("Bot is ready to work!");
