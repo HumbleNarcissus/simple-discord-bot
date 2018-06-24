@@ -1,13 +1,14 @@
 const Discord = require('discord.js');
 const axios = require('axios');
 const express = require('express');
+const ytdl = require('ytdl-core');
 
 //create express app
 const app = express();
 //create bot
 const bot = new Discord.Client();
 //port
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5500;
 
 //information about bot running
 app.get('/', (req, res) => {
@@ -24,7 +25,9 @@ app.listen(port, () => {
     bot.on('message', message => {
         //store recent message content
         const content = message.content;
-
+        //spliting arguments
+        const arg = content.split(' ');
+        console.log(arg);
         //react on commands
         if (content === '!ping') {
             message.channel.send('pong');
@@ -32,8 +35,25 @@ app.listen(port, () => {
             chuck(message);
         } else if (content === '!yomama') {
             yomama(message);
-        } else if (message.content === '!help') {
+        } else if (content === '!help') {
             message.channel.send("Commands: \n> !chuck\n> !yomama");
+        } else if (arg[0] === '!play') {
+            console.log("here");
+            console.log("arg[1]", arg[1])
+            let voiceChannel = message.member.voiceChannel;
+            voiceChannel.join().then(connection => {
+                console.log("begin")
+                const dispatcher = connection.playStream(ytdl(
+                    arg[1],
+                    { filter: 'audioonly' }));
+                  
+                console.log("end")
+                dispatcher.on("end", end => voiceChannel.leave());
+            })
+            .catch( (err) => { 
+                console.log(err); 
+                voiceChannel.leave();
+            });
         }
     })
 });
