@@ -8,7 +8,7 @@ const app = express();
 //create bot
 const bot = new Discord.Client();
 //port
-const port = process.env.PORT || 5500;
+const port = process.env.PORT || 3000;
 
 //information about bot running
 app.get('/', (req, res) => {
@@ -28,32 +28,29 @@ app.listen(port, () => {
         //spliting arguments
         const arg = content.split(' ');
         console.log(arg);
+
         //react on commands
-        if (content === '!ping') {
-            message.channel.send('pong');
-        } else if (content === '!chuck') {
-            chuck(message);
-        } else if (content === '!yomama') {
-            yomama(message);
-        } else if (content === '!help') {
-            message.channel.send("Commands: \n> !chuck\n> !yomama");
-        } else if (arg[0] === '!play') {
-            console.log("here");
-            console.log("arg[1]", arg[1])
-            let voiceChannel = message.member.voiceChannel;
-            voiceChannel.join().then(connection => {
-                console.log("begin")
-                const dispatcher = connection.playStream(ytdl(
-                    arg[1],
-                    { filter: 'audioonly' }));
-                  
-                console.log("end")
-                dispatcher.on("end", end => voiceChannel.leave());
-            })
-            .catch( (err) => { 
-                console.log(err); 
+        switch ( arg[0] ) {
+            case '!ping':
+                message.channel.send('pong');
+                break;
+            case '!chuck':
+                chuck(message);
+                break;
+            case '!yomama':
+                yomama(message);
+                break;
+            case '!help':
+                message.channel.send("Commands: \n> !chuck\n> !yomama \n> !play + link \n> !stop");
+                break;
+            case '!play':
+                console.log('play');
+                play(message, arg);
+                break;
+            case '!stop':
+                let voiceChannel = message.member.voiceChannel;
                 voiceChannel.leave();
-            });
+                break;
         }
     })
 });
@@ -72,3 +69,19 @@ async function yomama(message) {
     message.channel.send(`${joke}`);
 }
 
+function play(message, arg) {
+    console.log('arg', arg);
+    let voiceChannel = message.member.voiceChannel;
+    voiceChannel.join().then(connection => {
+        console.log("begin");
+        const dispatcher = connection.playStream(ytdl(
+                arg[1],
+                { filter: 'audioonly' }
+            ));
+        dispatcher.on("end", end => voiceChannel.leave());
+        })
+        .catch((err) => {
+            console.log(err);
+            voiceChannel.leave();
+        });
+}
