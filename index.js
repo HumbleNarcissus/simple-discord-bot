@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const axios = require('axios');
 const express = require('express');
+const ytdl = require('ytdl-core');
 
 //create express app
 const app = express();
@@ -24,16 +25,32 @@ app.listen(port, () => {
     bot.on('message', message => {
         //store recent message content
         const content = message.content;
+        //spliting arguments
+        const arg = content.split(' ');
+        console.log(arg);
 
         //react on commands
-        if (content === '!ping') {
-            message.channel.send('pong');
-        } else if (content === '!chuck') {
-            chuck(message);
-        } else if (content === '!yomama') {
-            yomama(message);
-        } else if (message.content === '!help') {
-            message.channel.send("Commands: \n> !chuck\n> !yomama");
+        switch ( arg[0] ) {
+            case '!ping':
+                message.channel.send('pong');
+                break;
+            case '!chuck':
+                chuck(message);
+                break;
+            case '!yomama':
+                yomama(message);
+                break;
+            case '!help':
+                message.channel.send("Commands: \n> !chuck\n> !yomama \n> !play + link \n> !stop");
+                break;
+            case '!play':
+                console.log('play');
+                play(message, arg);
+                break;
+            case '!stop':
+                let voiceChannel = message.member.voiceChannel;
+                voiceChannel.leave();
+                break;
         }
     })
 });
@@ -52,3 +69,19 @@ async function yomama(message) {
     message.channel.send(`${joke}`);
 }
 
+function play(message, arg) {
+    console.log('arg', arg);
+    let voiceChannel = message.member.voiceChannel;
+    voiceChannel.join().then(connection => {
+        console.log("begin");
+        const dispatcher = connection.playStream(ytdl(
+                arg[1],
+                { filter: 'audioonly' }
+            ));
+        dispatcher.on("end", end => voiceChannel.leave());
+        })
+        .catch((err) => {
+            console.log(err);
+            voiceChannel.leave();
+        });
+}
